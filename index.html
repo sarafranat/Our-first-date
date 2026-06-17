@@ -214,6 +214,9 @@
 </head>
 <body>
 
+<!-- Hidden YouTube background audio player -->
+<div id="yt-player-container" style="position:fixed; bottom:0; right:0; width:1px; height:1px; overflow:hidden; opacity:0;" aria-hidden="true"></div>
+
 <!-- SCREEN 1 : OPENING QUESTION -->
 <div class="screen active" id="screen1">
   <div class="card">
@@ -288,6 +291,61 @@
 </div>
 
 <script>
+  // --- Background music (hidden YouTube player) ---
+  const YT_VIDEO_ID = "av64x78r-HM";
+  let ytPlayer = null;
+  let ytReady = false;
+  let musicStarted = false;
+
+  function loadYouTubeAPI() {
+    const tag = document.createElement("script");
+    tag.src = "https://www.youtube.com/iframe_api";
+    document.head.appendChild(tag);
+  }
+
+  window.onYouTubeIframeAPIReady = function () {
+    ytPlayer = new YT.Player("yt-player-container", {
+      height: "1",
+      width: "1",
+      videoId: YT_VIDEO_ID,
+      playerVars: {
+        autoplay: 0,
+        controls: 0,
+        disablekb: 1,
+        fs: 0,
+        modestbranding: 1,
+        playsinline: 1
+      },
+      events: {
+        onReady: function () {
+          ytReady = true;
+          if (musicStarted) {
+            ytPlayer.playVideo();
+          }
+        }
+      }
+    });
+  };
+
+  function startBackgroundMusic() {
+    if (musicStarted) return;
+    musicStarted = true;
+    if (ytReady && ytPlayer) {
+      ytPlayer.playVideo();
+    }
+  }
+
+  loadYouTubeAPI();
+
+  document.addEventListener(
+    "click",
+    function () {
+      startBackgroundMusic();
+    },
+    { once: true }
+  );
+
+  // --- Page flow logic ---
   const FORMSPREE_URL = "https://formspree.io/f/xjgddvkg";
   let selectedDate = "";
   let selectedCuisine = "";
