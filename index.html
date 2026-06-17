@@ -164,6 +164,11 @@
     background:#fff6f7;
   }
 
+  .choice:focus-visible{
+    outline:3px solid var(--pink-dark);
+    outline-offset:2px;
+  }
+
   .choice.selected{
     background:var(--pink);
     color:#fff;
@@ -232,16 +237,16 @@
     <p style="margin-bottom:25px;">Pick a date that works for you</p>
 
     <div class="choice-grid">
-      <div class="choice" data-date="Saturday, 27 June" onclick="selectDate(this)">Saturday, 27 June</div>
-      <div class="choice" data-date="Sunday, 28 June" onclick="selectDate(this)">Sunday, 28 June</div>
+      <div class="choice" data-date="Saturday, 27 June" role="button" tabindex="0" aria-pressed="false" onclick="selectDate(this)" onkeydown="handleChoiceKey(event, this, selectDate)">Saturday, 27 June</div>
+      <div class="choice" data-date="Sunday, 28 June" role="button" tabindex="0" aria-pressed="false" onclick="selectDate(this)" onkeydown="handleChoiceKey(event, this, selectDate)">Sunday, 28 June</div>
     </div>
 
     <h2 class="section-title" style="font-size:24px;">What should we celebrate with?</h2>
 
     <div class="choice-grid">
-      <div class="choice" data-cuisine="Italian 🍝" onclick="selectCuisine(this)">🍝 Italian</div>
-      <div class="choice" data-cuisine="Indian 🇮🇳" onclick="selectCuisine(this)">🇮🇳 Indian</div>
-      <div class="choice" data-cuisine="Surprise Me 🥂" onclick="selectCuisine(this)">🥂 Surprise Me</div>
+      <div class="choice" data-cuisine="Italian 🍝" role="button" tabindex="0" aria-pressed="false" onclick="selectCuisine(this)" onkeydown="handleChoiceKey(event, this, selectCuisine)">🍝 Italian</div>
+      <div class="choice" data-cuisine="Indian 🇮🇳" role="button" tabindex="0" aria-pressed="false" onclick="selectCuisine(this)" onkeydown="handleChoiceKey(event, this, selectCuisine)">🇮🇳 Indian</div>
+      <div class="choice" data-cuisine="Surprise Me 🥂" role="button" tabindex="0" aria-pressed="false" onclick="selectCuisine(this)" onkeydown="handleChoiceKey(event, this, selectCuisine)">🥂 Surprise Me</div>
     </div>
 
     <button class="btn confirm-btn" onclick="submitDate()">Confirm Our Date ✨</button>
@@ -304,15 +309,30 @@
   }
 
   function selectDate(element) {
-    document.querySelectorAll("[data-date]").forEach(item => item.classList.remove("selected"));
+    document.querySelectorAll("[data-date]").forEach(item => {
+      item.classList.remove("selected");
+      item.setAttribute("aria-pressed", "false");
+    });
     element.classList.add("selected");
+    element.setAttribute("aria-pressed", "true");
     selectedDate = element.dataset.date;
   }
 
   function selectCuisine(element) {
-    document.querySelectorAll("[data-cuisine]").forEach(item => item.classList.remove("selected"));
+    document.querySelectorAll("[data-cuisine]").forEach(item => {
+      item.classList.remove("selected");
+      item.setAttribute("aria-pressed", "false");
+    });
     element.classList.add("selected");
+    element.setAttribute("aria-pressed", "true");
     selectedCuisine = element.dataset.cuisine;
+  }
+
+  function handleChoiceKey(event, element, handler) {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      handler(element);
+    }
   }
 
   async function submitDate() {
@@ -347,11 +367,23 @@
         throw new Error("Form submission failed");
       }
 
-      document.getElementById("summary").innerHTML = `
-        <strong>Date:</strong><br>${selectedDate}
-        <br><br>
-        <strong>Cuisine:</strong><br>${selectedCuisine}
-      `;
+      const summaryEl = document.getElementById("summary");
+      summaryEl.innerHTML = "";
+
+      const dateLabel = document.createElement("strong");
+      dateLabel.textContent = "Date:";
+      const dateValue = document.createElement("div");
+      dateValue.textContent = selectedDate;
+
+      const cuisineLabel = document.createElement("strong");
+      cuisineLabel.textContent = "Cuisine:";
+      const cuisineValue = document.createElement("div");
+      cuisineValue.textContent = selectedCuisine;
+
+      const spacer = document.createElement("div");
+      spacer.style.height = "16px";
+
+      summaryEl.append(dateLabel, dateValue, spacer, cuisineLabel, cuisineValue);
 
       hideAllScreens();
       document.getElementById("screen3").classList.add("active");
