@@ -201,6 +201,35 @@
     transform:translateY(-2px);
   }
 
+  .mute-btn{
+    position:fixed;
+    top:18px;
+    right:18px;
+    width:46px;
+    height:46px;
+    border-radius:50%;
+    border:1.5px solid var(--border);
+    background:var(--card-bg);
+    color:var(--pink-dark);
+    font-size:20px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 6px 18px rgba(216,140,154,0.25);
+    z-index:1000;
+    transition:transform 0.15s ease;
+  }
+
+  .mute-btn:hover{
+    transform:scale(1.08);
+  }
+
+  .mute-btn:focus-visible{
+    outline:3px solid var(--pink-dark);
+    outline-offset:2px;
+  }
+
   @media (max-width: 480px){
     .card{
       padding:36px 24px;
@@ -214,8 +243,10 @@
 </head>
 <body>
 
-<!-- Hidden YouTube background audio player -->
-<div id="yt-player-container" style="position:fixed; bottom:0; right:0; width:1px; height:1px; overflow:hidden; opacity:0;" aria-hidden="true"></div>
+<!-- Background music -->
+<audio id="bg-music" src="assets/background-music.mp3" loop preload="auto"></audio>
+
+<button id="mute-toggle" class="mute-btn" onclick="toggleMute()" aria-label="Mute background music" aria-pressed="false">🔊</button>
 
 <!-- SCREEN 1 : OPENING QUESTION -->
 <div class="screen active" id="screen1">
@@ -291,51 +322,33 @@
 </div>
 
 <script>
-  // --- Background music (hidden YouTube player) ---
-  const YT_VIDEO_ID = "av64x78r-HM";
-  let ytPlayer = null;
-  let ytReady = false;
+  // --- Background music ---
+  const bgMusic = document.getElementById("bg-music");
   let musicStarted = false;
-
-  function loadYouTubeAPI() {
-    const tag = document.createElement("script");
-    tag.src = "https://www.youtube.com/iframe_api";
-    document.head.appendChild(tag);
-  }
-
-  window.onYouTubeIframeAPIReady = function () {
-    ytPlayer = new YT.Player("yt-player-container", {
-      height: "1",
-      width: "1",
-      videoId: YT_VIDEO_ID,
-      playerVars: {
-        autoplay: 0,
-        controls: 0,
-        disablekb: 1,
-        fs: 0,
-        modestbranding: 1,
-        playsinline: 1
-      },
-      events: {
-        onReady: function () {
-          ytReady = true;
-          if (musicStarted) {
-            ytPlayer.playVideo();
-          }
-        }
-      }
-    });
-  };
 
   function startBackgroundMusic() {
     if (musicStarted) return;
     musicStarted = true;
-    if (ytReady && ytPlayer) {
-      ytPlayer.playVideo();
-    }
+    bgMusic.volume = 0.6;
+    bgMusic.play().catch(function (err) {
+      console.warn("Autoplay was blocked:", err);
+    });
   }
 
-  loadYouTubeAPI();
+  function toggleMute() {
+    const btn = document.getElementById("mute-toggle");
+    bgMusic.muted = !bgMusic.muted;
+    if (bgMusic.muted) {
+      btn.textContent = "🔇";
+      btn.setAttribute("aria-pressed", "true");
+      btn.setAttribute("aria-label", "Unmute background music");
+    } else {
+      btn.textContent = "🔊";
+      btn.setAttribute("aria-pressed", "false");
+      btn.setAttribute("aria-label", "Mute background music");
+      startBackgroundMusic();
+    }
+  }
 
   document.addEventListener(
     "click",
